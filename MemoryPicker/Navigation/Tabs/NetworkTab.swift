@@ -1,0 +1,14 @@
+//
+//  NetworkTab.swift
+//  MemoryPicker
+//
+//  Created by Denis Feier on 11.08.2025.
+//
+
+import SwiftUI
+
+struct NetworkTab: View {
+    var body: some View {
+        Text("Network Tab")
+    }
+}
