@@ -9,27 +9,50 @@ import SwiftUI
 
 struct ResetPasswordView: View {
     @State private var email = ""
-
+    
     var body: some View {
         VStack {
-            Text("Enter your email to reset your password.")
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-
-            TextField("Email", text: $email)
-                .textFieldStyle(.roundedBorder)
-                .padding(.horizontal)
-
-            Button("Send Reset Link") {
-                // Send reset request...
+            CardView {
+                VStack(spacing: 16) {
+                    Text("Enter your email to reset your password.")
+                        .font(.subheadline)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                    InputTextView(
+                        placeholder: "Email",
+                        text: $email,
+                        keyboardType: .emailAddress
+                    )
+                    MainButton(title: "Send Email", backgroundColor: .limeGreen) {
+                            
+                        }
+                }.padding(16)
             }
-            .buttonStyle(.borderedProminent)
-            .padding()
-
             Spacer()
         }
-        .padding(.top)
+        .padding()
         .navigationTitle("Reset Password")
     }
+}
+
+struct ResetPasswordScreen: View {
+    var body: some View {
+        NavigationStack {
+            ResetPasswordView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(
+                    Color.toolbarBackground,
+                    for: .navigationBar
+                )
+                .toolbarBackground(.visible, for: .navigationBar)
+                .background(
+                    ViewBackground()
+                )
+        }
+    }
+}
+
+#Preview {
+    ResetPasswordScreen()
 }

@@ -33,3 +33,20 @@ struct ProfileView: View {
         .navigationTitle("Profile")
     }
 }
+
+struct ProfileScreen: View {
+    var body: some View {
+        NavigationStack {
+            ProfileView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    LoginBackground()
+                )
+                .navigationBarHidden(true)
+        }
+    }
+}
+
+#Preview {
+    ProfileScreen()
+}

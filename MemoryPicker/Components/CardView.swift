@@ -16,7 +16,6 @@ struct CardView<Content: View>: View {
     
     var body: some View {
         content
-            .padding()
             .background(Color.cardWrapper.opacity(0.8))
             .cornerRadius(20)
     }
