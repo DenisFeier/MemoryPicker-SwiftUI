@@ -24,8 +24,7 @@ private struct RegisterView: View {
                     VStack(spacing: 12) {
                         InputTextView(
                             placeholder: "Name",
-                            text: $name,
-                            keyboardType: .emailAddress
+                            text: $name
                         )
                         InputTextView(
                             placeholder: "Email",
