@@ -8,7 +8,7 @@
 import SwiftUI
 
 private struct RegisterView: View {
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var appState: AuthVM
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
@@ -45,7 +45,7 @@ private struct RegisterView: View {
                     MainButton(
                         title: "Login",
                         backgroundColor: .limeGreen) {
-                        appState.isLoggedIn = true
+                        appState.isAuthenticated = true
                     }
                 }.padding(16)
             }

@@ -9,12 +9,12 @@ import SwiftUI
 
 @main
 struct MemoryPickerApp: App {
-    @StateObject private var appState = AppState()
+    @StateObject private var appState = AuthVM()
 
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if appState.isLoggedIn {
+                if appState.isAuthenticated {
                     MainTabView()
                         .environmentObject(appState)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -24,7 +24,7 @@ struct MemoryPickerApp: App {
                         .transition(.move(edge: .leading).combined(with: .opacity))
                 }
             }
-            .animation(.easeInOut(duration: 0.35), value: appState.isLoggedIn)
+            .animation(.easeInOut(duration: 0.35), value: appState.isAuthenticated)
         }
     }
 }

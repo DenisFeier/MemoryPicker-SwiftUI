@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 private struct LoginView: View {
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var appState: AuthVM
     @State private var email = ""
     @State private var password = ""
     
@@ -36,7 +36,10 @@ private struct LoginView: View {
                         MainButton(
                             title: "Login",
                             backgroundColor: .limeGreen) {
-                            appState.isLoggedIn = true
+                                appState.login(
+                                    email: email.trim(),
+                                    password: password.trim()
+                                )
                         }
                         HStack {
                             Text("Don’t have an account?")

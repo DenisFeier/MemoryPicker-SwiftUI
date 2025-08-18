@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var appState: AuthVM
     
     var body: some View {
         VStack {
@@ -16,7 +16,7 @@ struct ProfileView: View {
             
             Button(role: .destructive) {
                 withAnimation(.easeInOut) {
-                    appState.isLoggedIn = false
+                    appState.logout()
                 }
             } label: {
                 Text("Log Out")
