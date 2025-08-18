@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import ProgressHUD
 
 private struct RegisterView: View {
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AuthVM
     @State private var name = ""
     @State private var email = ""
@@ -45,7 +47,13 @@ private struct RegisterView: View {
                     MainButton(
                         title: "Login",
                         backgroundColor: .limeGreen) {
-                        appState.isAuthenticated = true
+                            appState.register(
+                                username: name,
+                                email: email,
+                                password: password,
+                                confirmPassword: confirmPassword) {
+                                dismiss()
+                            }
                     }
                 }.padding(16)
             }
@@ -53,6 +61,14 @@ private struct RegisterView: View {
         }
         .padding()
         .navigationTitle("Register")
+        .alert("Error!", isPresented: $appState.hasError) {
+            Button("OK", role: .cancel) {
+                appState.errorMessage = ""
+            }
+        } message: {
+            Text(appState.errorMessage)
+        }
+
     }
 }
 

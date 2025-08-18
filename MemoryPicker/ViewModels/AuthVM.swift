@@ -24,7 +24,16 @@ class AuthVM: ObservableObject {
     }
     
     @Published var isAuthenticated: Bool = false
-    @Published var errorMessage: String? = nil
+    @Published var errorMessage: String = "" {
+        didSet {
+            if errorMessage.isEmpty {
+                hasError = false
+            } else {
+                hasError = true
+            }
+        }
+    }
+    @Published var hasError: Bool = false
     
     private let tokenKey = "auth_token"
     
@@ -41,9 +50,35 @@ class AuthVM: ObservableObject {
                 switch result {
                 case .success(let token):
                     self.token = token
-                    self.errorMessage = nil
+                    self.errorMessage = ""
                 case .failure(let error):
-                    self.errorMessage = error.localizedDescription
+                    self.errorMessage = error.errorDescription ?? ""
+                }
+            }
+        }
+    }
+    
+    func register(username: String, email: String, password: String, confirmPassword: String, completion: @escaping () -> Void) {
+        
+        let trimedPassword = password.trim()
+        let trimedConfirmPassword = confirmPassword.trim()
+        
+        guard !username.isEmpty, !email.isEmpty, !trimedPassword.isEmpty, !trimedConfirmPassword.isEmpty else {
+            return
+        }
+        
+        guard trimedPassword == trimedConfirmPassword else {
+            return
+        }
+        
+        AuthService.shared.register(username: username, email: email, password: password) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.errorMessage = ""
+                    completion()
+                case .failure(let error):
+                    self.errorMessage = error.errorDescription ?? ""
                 }
             }
         }
