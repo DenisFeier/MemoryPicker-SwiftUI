@@ -7,12 +7,16 @@
 
 import SwiftUI
 import Combine
+import Alamofire
 
 private struct LoginView: View {
     @EnvironmentObject var appState: AuthVM
     @State private var email = ""
     @State private var password = ""
-    
+    @State private var isLoading = false
+    @State private var errorMessage = ""
+    @State private var hasError: Bool = false
+
     var body: some View {
         VStack {
             VStack {
@@ -30,17 +34,16 @@ private struct LoginView: View {
                             InputTextView(
                                 placeholder: "Password",
                                 text: $password,
-                                isSecure: true,
+                                isSecure: true
                             )
                         }
                         MainButton(
-                            title: "Login",
-                            backgroundColor: .limeGreen) {
-                                appState.login(
-                                    email: email.trim(),
-                                    password: password.trim()
-                                )
-                        }
+                            title: isLoading ? "Logging in..." : "Login",
+                            backgroundColor: .limeGreen,
+                            action: {
+                                loginAction()
+                            })
+                        .disabled(isLoading)
                         HStack {
                             Text("Don’t have an account?")
                             NavigationLink(destination: RegisterScreen()) {
@@ -68,8 +71,31 @@ private struct LoginView: View {
         }
         .padding()
         .navigationTitle("Login")
+        .alert(isPresented: $hasError) {
+            Alert(
+                title: Text("Login Error"),
+                message: Text(self.errorMessage),
+                dismissButton: .default(Text("OK")) {
+                    self.hasError = false
+                    self.errorMessage = ""
+                }
+            )
+        }
     }
     
+    private func loginAction() {
+        isLoading = true
+        appState.login(email: email, password: password) { result in
+            isLoading = false
+            switch result {
+            case .success:
+                break
+            case .failure(let error):
+                self.hasError = true
+                self.errorMessage = error.errorDescription ?? "An unknown error occurred."
+            }
+        }
+    }
 }
 
 struct LoginScreen: View {

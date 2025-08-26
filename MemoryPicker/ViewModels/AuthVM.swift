@@ -11,6 +11,7 @@ import Alamofire
 import SwiftyJSON
 
 class AuthVM: ObservableObject {
+    
     @Published var token: String? {
         didSet {
             if let token = token {
@@ -24,19 +25,7 @@ class AuthVM: ObservableObject {
     }
     
     @Published var isAuthenticated: Bool = false
-    @Published var errorMessage: String = "" {
-        didSet {
-            if errorMessage.isEmpty {
-                hasError = false
-            } else {
-                hasError = true
-            }
-        }
-    }
-    @Published var hasError: Bool = false
-    
-    private let tokenKey = "auth_token"
-    
+
     init() {
         if let savedToken = loadToken() {
             token = savedToken
@@ -44,41 +33,63 @@ class AuthVM: ObservableObject {
         }
     }
     
-    func login(email: String, password: String) {
-        AuthService.shared.login(email: email, password: password) { result in
+    func login(
+        email: String,
+        password: String,
+        completion: @escaping (Result<String, AuthError>) -> Void
+    ) {
+        let trimmedEmail = email.trim()
+        let trimmedPassword = password.trim()
+        
+        if trimmedEmail.isEmpty || trimmedPassword.isEmpty {
+            completion(.failure(
+                AuthError.userError("Email and password are required.")
+            ))
+            return
+        }
+        
+        AuthService.shared.login(email: trimmedEmail, password: trimmedPassword) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let token):
                     self.token = token
-                    self.errorMessage = ""
+                    completion(.success(token))
                 case .failure(let error):
-                    self.errorMessage = error.errorDescription ?? ""
+                    completion(.failure(error))
                 }
             }
         }
     }
     
-    func register(username: String, email: String, password: String, confirmPassword: String, completion: @escaping () -> Void) {
+    func register(
+        username: String,
+        email: String,
+        password: String,
+        confirmPassword: String,
+        completion: @escaping (Result<Void, AuthError>) -> Void
+    ) {
+        let trimmedUsername = username.trim()
+        let trimmedEmail = email.trim()
+        let trimmedPassword = password.trim()
+        let trimmedConfirmPassword = confirmPassword.trim()
         
-        let trimedPassword = password.trim()
-        let trimedConfirmPassword = confirmPassword.trim()
-        
-        guard !username.isEmpty, !email.isEmpty, !trimedPassword.isEmpty, !trimedConfirmPassword.isEmpty else {
+        if trimmedUsername.isEmpty || trimmedEmail.isEmpty || trimmedPassword.isEmpty || trimmedConfirmPassword.isEmpty {
+            completion(.failure(AuthError.userError("All fields are required.")))
             return
         }
         
-        guard trimedPassword == trimedConfirmPassword else {
+        if trimmedPassword != trimmedConfirmPassword {
+            completion(.failure(AuthError.userError("Passwords do not match.")))
             return
         }
         
-        AuthService.shared.register(username: username, email: email, password: password) { result in
+        AuthService.shared.register(username: trimmedUsername, email: trimmedEmail, password: trimmedPassword) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    self.errorMessage = ""
-                    completion()
+                    completion(.success(()))
                 case .failure(let error):
-                    self.errorMessage = error.errorDescription ?? ""
+                    completion(.failure(error))
                 }
             }
         }
@@ -87,42 +98,5 @@ class AuthVM: ObservableObject {
     func logout() {
         token = nil
         isAuthenticated = false
-    }
-    
-    private func isTokenValid(_ token: String) -> Bool {
-        let segments = token.split(separator: ".")
-        guard segments.count == 3 else { return false }
-        
-        let payloadSegment = segments[1]
-        
-        // Fix base64 padding
-        var base64 = String(payloadSegment)
-            .replacingOccurrences(of: "-", with: "+")
-            .replacingOccurrences(of: "_", with: "/")
-        while base64.count % 4 != 0 {
-            base64.append("=")
-        }
-        
-        guard let payloadData = Data(base64Encoded: base64),
-              let json = try? JSON(data: payloadData) else {
-            return false
-        }
-        
-        let exp = json["exp"].doubleValue
-        let now = Date().timeIntervalSince1970
-        return now < exp
-    }
-    
-    // MARK: - Persistence
-    private func saveToken(_ token: String) {
-        UserDefaults.standard.set(token, forKey: tokenKey)
-    }
-    
-    private func loadToken() -> String? {
-        UserDefaults.standard.string(forKey: tokenKey)
-    }
-    
-    private func clearToken() {
-        UserDefaults.standard.removeObject(forKey: tokenKey)
     }
 }

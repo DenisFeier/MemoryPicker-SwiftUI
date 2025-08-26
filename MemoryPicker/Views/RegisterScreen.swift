@@ -6,7 +6,8 @@
 //
 
 import SwiftUI
-import ProgressHUD
+import Combine
+import Alamofire
 
 private struct RegisterView: View {
     @Environment(\.dismiss) var dismiss
@@ -15,7 +16,10 @@ private struct RegisterView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
-
+    @State private var isLoading = false
+    @State private var errorMessage = ""
+    @State private var hasError: Bool = false
+    
     var body: some View {
         VStack {
             GradientMemoryPickerTitle()
@@ -36,39 +40,56 @@ private struct RegisterView: View {
                         InputTextView(
                             placeholder: "Password",
                             text: $password,
-                            isSecure: true,
+                            isSecure: true
                         )
                         InputTextView(
                             placeholder: "Re-Password",
                             text: $confirmPassword,
-                            isSecure: true,
+                            isSecure: true
                         )
                     }
                     MainButton(
-                        title: "Login",
-                        backgroundColor: .limeGreen) {
-                            appState.register(
-                                username: name,
-                                email: email,
-                                password: password,
-                                confirmPassword: confirmPassword) {
-                                dismiss()
-                            }
-                    }
+                        title: isLoading ? "Registering..." : "Register",
+                        backgroundColor: .limeGreen,
+                        action: {
+                            registerAction()
+                        })
+                    .disabled(isLoading)
                 }.padding(16)
             }
             Spacer()
         }
         .padding()
         .navigationTitle("Register")
-        .alert("Error!", isPresented: $appState.hasError) {
+        .alert("Error!", isPresented: $hasError) {
             Button("OK", role: .cancel) {
-                appState.errorMessage = ""
+                self.hasError = false
+                self.errorMessage = ""
             }
         } message: {
-            Text(appState.errorMessage)
+            Text(errorMessage)
         }
-
+    }
+    
+    private func registerAction() {
+        isLoading = true
+        appState.register(
+            username: name,
+            email: email,
+            password: password,
+            confirmPassword: confirmPassword
+        ) { result in
+            DispatchQueue.main.async {
+                isLoading = false
+                switch result {
+                case .success:
+                    dismiss()
+                case .failure(let error):
+                    self.hasError = true
+                    self.errorMessage = error.errorDescription ?? "Unknown error"
+                }
+            }
+        }
     }
 }
 
