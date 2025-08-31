@@ -12,13 +12,7 @@ import Alamofire
 private struct RegisterView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AuthVM
-    @State private var name = ""
-    @State private var email = ""
-    @State private var password = ""
-    @State private var confirmPassword = ""
-    @State private var isLoading = false
-    @State private var errorMessage = ""
-    @State private var hasError: Bool = false
+    @StateObject private var registerVM = RegisterVM()
     
     var body: some View {
         VStack {
@@ -30,65 +24,51 @@ private struct RegisterView: View {
                     VStack(spacing: 12) {
                         InputTextView(
                             placeholder: "Name",
-                            text: $name
+                            text: $registerVM.name
                         )
                         InputTextView(
                             placeholder: "Email",
-                            text: $email,
+                            text: $registerVM.email,
                             keyboardType: .emailAddress
                         )
                         InputTextView(
                             placeholder: "Password",
-                            text: $password,
+                            text: $registerVM.password,
                             isSecure: true
                         )
                         InputTextView(
                             placeholder: "Re-Password",
-                            text: $confirmPassword,
+                            text: $registerVM.confirmPassword,
                             isSecure: true
                         )
                     }
                     MainButton(
-                        title: isLoading ? "Registering..." : "Register",
+                        title: registerVM.isLoading ? "Registering..." : "Register",
                         backgroundColor: .limeGreen,
                         action: {
-                            registerAction()
+                            registerVM.register(authVM: appState)
                         })
-                    .disabled(isLoading)
+                    .disabled(registerVM.isLoading)
                 }.padding(16)
             }
             Spacer()
         }
         .padding()
         .navigationTitle("Register")
-        .alert("Error!", isPresented: $hasError) {
+        .alert("Error!", isPresented: $registerVM.hasError) {
             Button("OK", role: .cancel) {
-                self.hasError = false
-                self.errorMessage = ""
+                registerVM.hasError = false
+                registerVM.errorMessage = ""
             }
         } message: {
-            Text(errorMessage)
+            Text(registerVM.errorMessage)
         }
-    }
-    
-    private func registerAction() {
-        isLoading = true
-        appState.register(
-            username: name,
-            email: email,
-            password: password,
-            confirmPassword: confirmPassword
-        ) { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success:
-                    dismiss()
-                case .failure(let error):
-                    self.hasError = true
-                    self.errorMessage = error.errorDescription ?? "Unknown error"
-                }
+        .alert("Success!", isPresented: $registerVM.showSuccessAlert) {
+            Button("OK") {
+                dismiss()
             }
+        } message: {
+            Text("User with name \(registerVM.name) was registered successfully.")
         }
     }
 }

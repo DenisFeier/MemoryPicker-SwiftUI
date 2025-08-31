@@ -11,11 +11,7 @@ import Alamofire
 
 private struct LoginView: View {
     @EnvironmentObject var appState: AuthVM
-    @State private var email = ""
-    @State private var password = ""
-    @State private var isLoading = false
-    @State private var errorMessage = ""
-    @State private var hasError: Bool = false
+    @StateObject private var loginVM = LoginVM()
 
     var body: some View {
         VStack {
@@ -28,22 +24,23 @@ private struct LoginView: View {
                         VStack(spacing: 12) {
                             InputTextView(
                                 placeholder: "Email",
-                                text: $email,
+                                text: $loginVM.email,
                                 keyboardType: .emailAddress
                             )
                             InputTextView(
                                 placeholder: "Password",
-                                text: $password,
+                                text: $loginVM.password,
                                 isSecure: true
                             )
                         }
                         MainButton(
-                            title: isLoading ? "Logging in..." : "Login",
+                            title: loginVM.isLoading ? "Logging in..." : "Login",
                             backgroundColor: .limeGreen,
                             action: {
-                                loginAction()
-                            })
-                        .disabled(isLoading)
+                                loginVM.login(authVM: appState)
+                            }
+                        )
+                        .disabled(loginVM.isLoading)
                         HStack {
                             Text("Don’t have an account?")
                             NavigationLink(destination: RegisterScreen()) {
@@ -71,29 +68,15 @@ private struct LoginView: View {
         }
         .padding()
         .navigationTitle("Login")
-        .alert(isPresented: $hasError) {
+        .alert(isPresented: $loginVM.hasError) {
             Alert(
                 title: Text("Login Error"),
-                message: Text(self.errorMessage),
+                message: Text(loginVM.errorMessage),
                 dismissButton: .default(Text("OK")) {
-                    self.hasError = false
-                    self.errorMessage = ""
+                    loginVM.hasError = false
+                    loginVM.errorMessage = ""
                 }
             )
-        }
-    }
-    
-    private func loginAction() {
-        isLoading = true
-        appState.login(email: email, password: password) { result in
-            isLoading = false
-            switch result {
-            case .success:
-                break
-            case .failure(let error):
-                self.hasError = true
-                self.errorMessage = error.errorDescription ?? "An unknown error occurred."
-            }
         }
     }
 }
