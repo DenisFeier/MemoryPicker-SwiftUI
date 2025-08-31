@@ -15,11 +15,11 @@ struct AuthService {
     
     private init() {}
     
-    func login(email: String, password: String, completion: @escaping (Result<String, AuthError>) -> Void) {
+    func login(email: String, password: String, completion: @escaping (Result<String, NatworkAPIError>) -> Void) {
         let urlString = "\(APIConfig.baseURL)/user/login"
         
         guard let url = URL(string: urlString) else {
-            completion(.failure(AuthError.invalidResponse))
+            completion(.failure(NatworkAPIError.invalidResponse))
             return
         }
         
@@ -48,18 +48,18 @@ struct AuthService {
                     if let token = json["token"].string, !token.isEmpty {
                         completion(.success(token))
                     } else {
-                        completion(.failure(AuthError.invalidResponse))
+                        completion(.failure(NatworkAPIError.invalidResponse))
                     }
                 } catch {
-                    completion(.failure(AuthError.invalidResponse))
+                    completion(.failure(NatworkAPIError.invalidResponse))
                 }
             case .failure(_):
                 if let data = response.data,
                     let json = try? JSON(data: data),
                     let message = json["message"].string {
-                    completion(.failure(AuthError.serverMessage(message)))
+                    completion(.failure(NatworkAPIError.serverMessage(message)))
                 } else {
-                    completion(.failure(AuthError.invalidResponse))
+                    completion(.failure(NatworkAPIError.invalidResponse))
                 }
             }
         }
@@ -69,11 +69,11 @@ struct AuthService {
         username: String,
         email: String,
         password: String,
-        completion: @escaping (Result<User, AuthError>) -> Void) {
+        completion: @escaping (Result<User, NatworkAPIError>) -> Void) {
         let urlString = "\(APIConfig.baseURL)/user/register"
         
         guard let url = URL(string: urlString) else {
-            completion(.failure(AuthError.invalidResponse))
+            completion(.failure(NatworkAPIError.invalidResponse))
             return
         }
             
@@ -103,31 +103,17 @@ struct AuthService {
                     let user = User(json: json)
                     completion(.success(user))
                 } catch {
-                    completion(.failure(AuthError.invalidResponse))
+                    completion(.failure(NatworkAPIError.invalidResponse))
                 }
             case .failure(_):
                 if let data = response.data,
                     let json = try? JSON(data: data),
                     let message = json["message"].string {
-                    completion(.failure(AuthError.serverMessage(message)))
+                    completion(.failure(NatworkAPIError.serverMessage(message)))
                 } else {
-                    completion(.failure(AuthError.invalidResponse))
+                    completion(.failure(NatworkAPIError.invalidResponse))
                 }
             }
-        }
-    }
-}
-
-enum AuthError: LocalizedError {
-    case invalidResponse
-    case serverMessage(String)
-    case userError(String)
-    
-    var errorDescription: String? {
-        switch self {
-            case .invalidResponse: return "Invalid response from server"
-            case .serverMessage(let msg): return msg
-            case .userError(let msg): return msg
         }
     }
 }

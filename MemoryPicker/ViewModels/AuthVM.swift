@@ -36,14 +36,14 @@ class AuthVM: ObservableObject {
     func login(
         email: String,
         password: String,
-        completion: @escaping (Result<String, AuthError>) -> Void
+        completion: @escaping (Result<String, NatworkAPIError>) -> Void
     ) {
         let trimmedEmail = email.trim()
         let trimmedPassword = password.trim()
         
         if trimmedEmail.isEmpty || trimmedPassword.isEmpty {
             completion(.failure(
-                AuthError.userError("Email and password are required.")
+                NatworkAPIError.userError("Email and password are required.")
             ))
             return
         }
@@ -66,7 +66,7 @@ class AuthVM: ObservableObject {
         email: String,
         password: String,
         confirmPassword: String,
-        completion: @escaping (Result<Void, AuthError>) -> Void
+        completion: @escaping (Result<Void, NatworkAPIError>) -> Void
     ) {
         let trimmedUsername = username.trim()
         let trimmedEmail = email.trim()
@@ -74,12 +74,12 @@ class AuthVM: ObservableObject {
         let trimmedConfirmPassword = confirmPassword.trim()
         
         if trimmedUsername.isEmpty || trimmedEmail.isEmpty || trimmedPassword.isEmpty || trimmedConfirmPassword.isEmpty {
-            completion(.failure(AuthError.userError("All fields are required.")))
+            completion(.failure(NatworkAPIError.userError("All fields are required.")))
             return
         }
         
         if trimmedPassword != trimmedConfirmPassword {
-            completion(.failure(AuthError.userError("Passwords do not match.")))
+            completion(.failure(NatworkAPIError.userError("Passwords do not match.")))
             return
         }
         

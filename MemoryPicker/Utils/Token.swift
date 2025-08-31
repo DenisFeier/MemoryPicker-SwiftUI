@@ -24,7 +24,7 @@ func isTokenValid(_ token: String) -> Bool {
     }
     
     guard let payloadData = Data(base64Encoded: base64),
-          let json = try? JSON(data: payloadData) else {
+        let json = try? JSON(data: payloadData) else {
         return false
     }
     
