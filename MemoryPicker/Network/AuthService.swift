@@ -55,8 +55,8 @@ struct AuthService {
                 }
             case .failure(_):
                 if let data = response.data,
-                   let json = try? JSON(data: data),
-                   let message = json["message"].string {
+                    let json = try? JSON(data: data),
+                    let message = json["message"].string {
                     completion(.failure(AuthError.serverMessage(message)))
                 } else {
                     completion(.failure(AuthError.invalidResponse))
@@ -107,8 +107,8 @@ struct AuthService {
                 }
             case .failure(_):
                 if let data = response.data,
-                   let json = try? JSON(data: data),
-                   let message = json["message"].string {
+                    let json = try? JSON(data: data),
+                    let message = json["message"].string {
                     completion(.failure(AuthError.serverMessage(message)))
                 } else {
                     completion(.failure(AuthError.invalidResponse))
