@@ -33,6 +33,41 @@ func isTokenValid(_ token: String) -> Bool {
     return now < exp
 }
 
+func decodeJWTPayload(_ token: String) -> JSON? {
+    let segments = token.split(separator: ".")
+    guard segments.count > 1 else {
+        print("Invalid JWT")
+        return nil
+    }
+
+    let payloadSegment = String(segments[1])
+    
+    // Base64 decode (JWT uses base64url without padding)
+    var base64 = payloadSegment
+        .replacingOccurrences(of: "-", with: "+")
+        .replacingOccurrences(of: "_", with: "/")
+    
+    // Add padding if needed
+    let paddingLength = 4 - base64.count % 4
+    if paddingLength < 4 {
+        base64 += String(repeating: "=", count: paddingLength)
+    }
+    
+    guard let payloadData = Data(base64Encoded: base64) else {
+        print("Failed to base64 decode JWT payload")
+        return nil
+    }
+    
+    // Convert Data to JSON
+    do {
+        let jsonObject = try JSONSerialization.jsonObject(with: payloadData, options: [])
+        return JSON(jsonObject)
+    } catch {
+        print("Failed to decode JSON from JWT payload: \(error)")
+        return nil
+    }
+}
+
 func saveToken(_ token: String) {
     UserDefaults.standard.set(token, forKey: tokenKey)
 }
@@ -44,3 +79,4 @@ func loadToken() -> String? {
 func clearToken() {
     UserDefaults.standard.removeObject(forKey: tokenKey)
 }
+

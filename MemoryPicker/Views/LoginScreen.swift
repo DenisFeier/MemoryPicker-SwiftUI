@@ -18,7 +18,6 @@ private struct LoginView: View {
             VStack {
                 GradientMemoryPickerTitle()
                     .padding(.bottom, 16)
-                
                 CardView {
                     VStack(spacing: 16) {
                         VStack(spacing: 12) {
@@ -42,7 +41,12 @@ private struct LoginView: View {
                         )
                         .disabled(loginVM.isLoading)
                         HStack {
-                            Text("Don’t have an account?")
+                            Text("Remember me ?")
+                            Toggle("", isOn: $loginVM.isRemembered)
+                                .labelsHidden()
+                        }
+                        HStack {
+                            Text("Don’t have an account ?")
                             NavigationLink(destination: RegisterScreen()) {
                                 Text("Sign UP")
                                     .foregroundColor(

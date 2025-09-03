@@ -16,7 +16,24 @@ class LoginVM: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String = ""
     @Published var hasError: Bool = false
+    @Published var isRemembered: Bool = false
+    
+    init() {
+        fetchCredentials()
+    }
 
+    private func fetchCredentials() {
+        if let credentials = getRememberedCredentials() {
+            let email = credentials.email
+            let password = credentials.password
+            if !email.isEmpty && !password.isEmpty {
+                self.email = email
+                self.password = password
+                self.isRemembered = true
+            }
+        }
+    }
+    
     func login(authVM: AuthVM) {
         isLoading = true
         authVM.login(email: email, password: password) { [weak self] result in
@@ -24,8 +41,18 @@ class LoginVM: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
-                    self?.errorMessage = ""
-                    self?.hasError = false
+                    guard let self = self else {
+                        self?.hasError = true
+                        self?.errorMessage = "An unknown error occurred."
+                        return
+                    }
+                    if self.isRemembered {
+                        rememberCredentials(email: self.email, password: self.password)
+                    } else {
+                        forgetCredentials()
+                    }
+                    self.errorMessage = ""
+                    self.hasError = false
                 case .failure(let error):
                     self?.hasError = true
                     self?.errorMessage = error.errorDescription ?? "An unknown error occurred."

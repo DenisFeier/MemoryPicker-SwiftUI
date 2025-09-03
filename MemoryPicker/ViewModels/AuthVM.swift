@@ -25,6 +25,7 @@ class AuthVM: ObservableObject {
     }
     
     @Published var isAuthenticated: Bool = false
+    @Published var currentUser: User? = nil
 
     init() {
         if let savedToken = loadToken() {
@@ -36,7 +37,7 @@ class AuthVM: ObservableObject {
     func login(
         email: String,
         password: String,
-        completion: @escaping (Result<String, NatworkAPIError>) -> Void
+        completion: @escaping (Result<Void, NatworkAPIError>) -> Void
     ) {
         let trimmedEmail = email.trim()
         let trimmedPassword = password.trim()
@@ -48,12 +49,20 @@ class AuthVM: ObservableObject {
             return
         }
         
-        AuthService.shared.login(email: trimmedEmail, password: trimmedPassword) { result in
-            DispatchQueue.main.async {
+        AuthService.shared.login(email: trimmedEmail, password: trimmedPassword) {[weak self] result in
+            DispatchQueue.main.async { [weak self] in
                 switch result {
                 case .success(let token):
-                    self.token = token
-                    completion(.success(token))
+                    if let userJson = decodeJWTPayload(token) {
+                        let decodedUser = User(json: userJson)
+                        self?.currentUser = decodedUser
+                        self?.token = token
+                        completion(.success(()))
+                    } else {
+                        completion(.failure(
+                            NatworkAPIError.internalError("Can't decode user data!")
+                        ))
+                    }
                 case .failure(let error):
                     completion(.failure(error))
                 }
